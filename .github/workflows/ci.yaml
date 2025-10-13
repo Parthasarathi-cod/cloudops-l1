@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  node_ci:
+    name: Node CI
     runs-on: ubuntu-latest
 
     steps:
@@ -22,19 +23,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          npm install
 
       - name: Verify Node version
         run: node -v
 
-      - name: Run tests (skip if none)
+      - name: Run tests
         run: |
           if npm run | grep -q "test"; then
             npm test
           else
-            echo "No test script found — skipping tests."
+            echo "No tests found — skipping"
           fi
