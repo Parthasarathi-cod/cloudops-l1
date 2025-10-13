@@ -1,25 +1,40 @@
 name: Node CI
 
+# This controls when the workflow runs
 on:
-  pull_request:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:  # 👈 allows manual trigger from GitHub UI
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]  # You can test multiple Node versions
+
     steps:
-      - name: Checkout code
+      # Checkout the repo code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js 18
+      # Setup Node.js with the version defined above
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
 
+      # Install dependencies using package-lock.json (faster & clean)
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
+      # Optional: Build step (skip if no build script)
+      - name: Build project
+        run: npm run build --if-present
+
+      # Run your Jest tests or similar
       - name: Run tests
         run: npm test
