@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  node_ci:
+  build:
     name: Node CI
     runs-on: ubuntu-latest
 
@@ -19,19 +19,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Verify Node version
         run: node -v
 
       - name: Run tests
-        run: |
-          if npm run | grep -q "test"; then
-            npm test
-          else
-            echo "No tests found — skipping"
-          fi
+        run: npm test
