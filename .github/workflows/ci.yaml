@@ -29,7 +29,7 @@ jobs:
 
       # Install dependencies using package-lock.json (faster & clean)
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       # Optional: Build step (skip if no build script)
       - name: Build project
