@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  # --- Job 1: Unit tests (keeps the existing required status "Node CI") ---
   build:
     name: Node CI
     runs-on: ubuntu-latest
@@ -22,10 +23,51 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Verify Node version
         run: node -v
 
-      - name: Run tests
+      - name: Run unit tests
         run: npm test
+
+  # --- Job 2: Docker-based integration tests with artifact upload ---
+  integration-tests:
+    name: Integration tests (Docker)
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build and run the compose stack; exit when tests container exits
+      - name: Compose up (build & run)
+        run: |
+          docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+      # Collect JUnit XML from the tests container (written to /tests/test-results)
+      - name: Collect JUnit results
+        if: always()
+        run: |
+          mkdir -p ./test-results
+          TESTS_CID=$(docker ps -a --format '{{.ID}} {{.Names}}' | awk '/tests/{print $1}')
+          if [ -n "$TESTS_CID" ]; then
+            docker cp "$TESTS_CID":/tests/test-results ./test-results || true
+          fi
+
+      - name: Upload artifacts (JUnit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-junit
+          path: ./test-results
+
+      # Optional cleanup (Runner is ephemeral, but this keeps logs tidy)
+      - name: Compose down
+        if: always()
+        run: |
+          docker compose -f docker-compose.test.yml down --remove-orphans
