@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    image: cloudops/todo-app:test
+    environment:
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  tests:
+    image: node:20
+    working_dir: /tests
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      - APP_BASE_URL=http://app:3000
+    volumes:
+      - ./:/tests
+    command: >
+      bash -lc "npm ci && npm run test:int"

@@ -6,8 +6,12 @@ app.get("/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Start the HTTP server only when run directly (not when imported by tests)
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
-module.exports = app; // for testing
+module.exports = app; // for testing with supertest

@@ -1,0 +1,4 @@
+{
+  "testMatch": ["**/__tests__/**/*.test.js"],
+  "testPathIgnorePatterns": ["/node_modules/", ".int.test.js$"]
+}
